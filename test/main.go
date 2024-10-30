@@ -42,16 +42,17 @@ func main() {
 		World: "world",
 	}
 	r := gitdb.Repo{
-		URL:  "git@github.com:jfcarter2358/gitdb",
-		Path: "test/foo.tf",
-		Ref:  "main",
+		URL:    "git@github.com:jfcarter2358/gitdb",
+		Path:   "test/foo.tf",
+		Ref:    "main",
+		Branch: "test",
 	}
 
 	if err := r.Init(); err != nil {
 		panic(err)
 	}
 
-	if err := r.Update(); err != nil {
+	if err := r.Pull(); err != nil {
 		panic(err)
 	}
 
@@ -60,6 +61,10 @@ func main() {
 		panic(err)
 	}
 	if err := r.Post(bytes); err != nil {
+		panic(err)
+	}
+
+	if err := r.Push("Test push"); err != nil {
 		panic(err)
 	}
 
