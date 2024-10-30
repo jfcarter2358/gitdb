@@ -68,6 +68,10 @@ func main() {
 		panic(err)
 	}
 
+	if err := r.PR("Test PR", "This is a test PR"); err != nil {
+		panic(err)
+	}
+
 	dat, err := r.Get()
 	if err != nil {
 		panic(err)

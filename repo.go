@@ -10,6 +10,7 @@ import (
 
 type Repo struct {
 	URL       string
+	repo      string
 	Path      string
 	Ref       string
 	Branch    string
@@ -21,6 +22,9 @@ type Repo struct {
 func (r *Repo) Init() error {
 	now := time.Now()
 	ts := now.Format("20060102T150405")
+	gitParts := strings.Split(r.URL, "@")
+	urlParts := strings.Split(gitParts[1], ":")
+	r.repo = fmt.Sprintf("%s/%s", urlParts[0], urlParts[1])
 
 	dir, err := os.MkdirTemp("", "gitdb")
 	if err != nil {
@@ -100,10 +104,10 @@ func (r *Repo) Post(dat []byte) error {
 	return os.WriteFile(r.localPath, []byte(dat), 0666)
 }
 
-// func (r *Repo) PR(ref string) error {
-// 	cmd := exec.Command("git", "pull", "origin", r.Ref)
-// 	cmd.Dir = r.localDir
-// 	cmd.Stdout = os.Stdout
-// 	cmd.Stderr = os.Stderr
-// 	return cmd.Run()
-// }
+func (r *Repo) PR(title, body string) error {
+	cmd := exec.Command("gh", "pr", "create", "--repo", r.repo, "--title", title, "--body", body, "--body", r.Ref)
+	cmd.Dir = r.localDir
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+	return cmd.Run()
+}
