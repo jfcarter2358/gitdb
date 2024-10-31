@@ -9,14 +9,13 @@ import (
 )
 
 type Repo struct {
-	URL       string
-	Repo      string
-	Path      string
-	Ref       string
-	Branch    string
-	LocalRef  string
-	LocalPath string
-	LocalDir  string
+	URL      string
+	Repo     string
+	Path     string
+	Ref      string
+	Branch   string
+	LocalRef string
+	LocalDir string
 }
 
 func (r *Repo) Init() error {
@@ -32,23 +31,13 @@ func (r *Repo) Init() error {
 	}
 	r.LocalRef = r.Ref
 	r.LocalDir = dir
-	r.LocalPath = fmt.Sprintf("%s/%s", dir, r.Path)
 	cmd := exec.Command("git", "clone", "-b", r.Ref, r.URL, r.LocalDir)
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 	if err := cmd.Run(); err != nil {
 		return err
 	}
-	split := strings.Split(r.LocalPath, "/")
-	folderPath := strings.Join(split[:len(split)-1], "/")
-	if err := os.MkdirAll(folderPath, os.ModePerm); err != nil {
-		return err
-	}
-	file, err := os.OpenFile(r.LocalPath, os.O_RDONLY|os.O_CREATE, 0644)
-	if err != nil {
-		return err
-	}
-	defer file.Close()
+
 	if r.Branch != "" {
 		localRef := fmt.Sprintf("%s_%s", r.Branch, ts)
 		cmd := exec.Command("git", "checkout", "-b", localRef)
@@ -96,12 +85,24 @@ func (r *Repo) Push(message string) error {
 	return nil
 }
 
-func (r *Repo) Get() ([]byte, error) {
-	return os.ReadFile(r.LocalPath)
+func (r *Repo) Get(path string) ([]byte, error) {
+	return os.ReadFile(fmt.Sprintf("%s/%s", r.LocalDir, path))
 }
 
-func (r *Repo) Post(dat []byte) error {
-	return os.WriteFile(r.LocalPath, []byte(dat), 0666)
+func (r *Repo) Post(dat []byte, path string) error {
+	localPath := fmt.Sprintf("%s/%s", r.LocalDir, path)
+	split := strings.Split(localPath, "/")
+	folderPath := strings.Join(split[:len(split)-1], "/")
+	if err := os.MkdirAll(folderPath, os.ModePerm); err != nil {
+		return err
+	}
+	file, err := os.OpenFile(localPath, os.O_RDWR|os.O_CREATE, 0644)
+	if err != nil {
+		return err
+	}
+	defer file.Close()
+	_, err = file.Write(dat)
+	return err
 }
 
 func (r *Repo) PR(title, body string) error {
