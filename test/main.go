@@ -60,7 +60,7 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	if err := r.Post(bytes); err != nil {
+	if err := r.Post(bytes, "test/s3.tf"); err != nil {
 		panic(err)
 	}
 
@@ -72,7 +72,7 @@ func main() {
 		panic(err)
 	}
 
-	dat, err := r.Get()
+	dat, err := r.Get("test/s3.tf")
 	if err != nil {
 		panic(err)
 	}
